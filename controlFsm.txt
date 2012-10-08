@@ -1,0 +1,179 @@
+Bit layout of control FSM output
+================================
+
+Single bit :
+----------
+
+
+ 31 | 30 | 29 | 28 | 27 | 26 | 25 |
+PCW |IRW |RAD |MST |MLD |RWE |AMX1|
+
+
+PCW : Write enable for PC
+IRW : Write enable for IR
+RAD : activate tri-state to write register on data bus
+MST : memory store enable
+MLD : memory read enable (shall not be used with RAD)
+RWE : Register bank write enable
+AMX1: ALU muxer to select 1st operand : 0->PC, 1->REGS1
+
+
+Dual bits :
+-----------
+
+9-8 | 7-6 | 5-4 | 3-2 | 1-0 |
+ADMX|PCMX |RWDMX|RWSMX|AMX2 |
+
+
+ADMX  : Address muxer : 0->PC, 1->ALU
+PCMX  : PC muxer : 0->PC+1, 1->REGS1, 2->ALU
+RWDMX : Register data write muxer : 0->MEMDATA, 1->ALU, 2->PC
+RWSMX : Register selection write muxer : 0->RRDEST, 1->RIDEST, 2->0x1D (hardcoded RA register 29)
+AMX2  :	ALU muxer to select 2nd operand : 0->REGS2, 1->IMMLOW, 2->IMMHI
+
+
+Control FSM input
+=================
+15  |14 - 10| . . . |2 - 0|
+IMM |OPCODE |  RES  |STA  |
+
+IMM : bit 31 of IR
+OPCODE : bits 26-30 of IR
+RES: reserved 
+STA : status register from ALU :
+	| 2 | 1 | 0 |
+	|RES|G  |EQ |
+	
+	G : Greater than
+	EQ : equal	
+
+
+FSM
+===
+opcode type
+|6 - 4|3 - 2|1 - 0|
+|BR   |MEM  | ALU |
+
+ALU : 0 is common, 1 register only, 2 immediate only, 3 is not ALU
+MEM : 0 is lw, 1 is sw,3 is not MEM
+BR : 0 is b<cond>, 1 is bi, 2 is b, 3 is calli, 7 invalid
+
+
+State
+| 6-3 | 2-0 |
+| STA | SUB |
+
+STA: state number
+SUB substate
+
+0 : Fetch;  ROM address=0x0
+-----
+ADMX=0
+MLD =1
+IRW =1
+0x48000000
+
+NEXT: 1
+
+1 : Decode;  ROM address=0x8
+----------
+//prepare PC for next cycle
+PCW=1
+PCMX=0
+
+0x80000000
+if (ALU)
+NEXT = 2.x
+if (MEM)
+NEXT = 3.x
+
+
+2.(0,1,2 + 4*IMM) : Execute ALU
+---------------
+
+- Common ALU instruction (independent of IMM bit) :
+00000
+00001
+00010
+00101
+00110
+01000
+01001
+01101
+01110
+01111
+11001
+11010
+11011
+11100
+11101
+11111
+
+-> AMX2 = not(IMM)
+
+
+
+
+- ALU if IMM=1 (not immediate)
+00011
+00111
+10001
+10010
+
+->AMX2 = 0
+
+- ALU if IMM=0 (immediate) : only HI
+11000
+11110
+
+->AMX2 = 2
+
+
+AMX1 = 1
+AMX2 = (see above)
+RWSMX = not (IMM)
+RWDMX = 1
+RWE = 1
+
+NEXT = fetch
+
+Summary
+2.0 = 0x06000015 -> ROM=0x10
+2.2 = 0x06000016 -> ROM=0x12
+2.4 = 0x06000010 -> ROM=0x14
+2.5 = 0x06000010 -> ROM=0x15
+
+
+3.(0,1) : Execute memory 1
+------------------
+001010 : lw
+
+AMX1 = 1
+AMX2 = 1
+ADMX = 1
+RWDMX = 0
+RWSMX = 1
+RWE = 1
+MLD = 1
+
+
+
+010110 : sw
+AMX1 = 1
+AMX2 = 1
+ADMX = 1
+MST	 = 1
+RAD	 = 1
+
+NEXT : Execute memory 2
+Summary
+3.0 = 0x0E000105 -> ROM=0x18
+3.1 = 0x32000101 -> ROM=0x19
+
+4.(0,1) : Execute memory 2
+--------------------
+Summary
+4.0 = 0x00000000 -> ROM=0x20
+4.1 = 0x00000000 -> ROM=0x21
+
+5.(x) : Branch
