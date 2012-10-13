@@ -21,15 +21,15 @@ AMX1: ALU muxer to select 1st operand : 0->PC, 1->REGS1
 Dual bits :
 -----------
 
-9-8 | 7-6 | 5-4 | 3-2 | 1-0 |
-ADMX|PCMX |RWDMX|RWSMX|AMX2 |
+10-11 |9-8 | 7-6 | 5-4 | 3-2 | 1-0 |
+ALUMX |ADMX|PCMX |RWDMX|RWSMX|AMX2 |
 
-
+ALUMX : ALU operation muxer : 0->opcode (IR), 1->0xd (ADD)
 ADMX  : Address muxer : 0->PC, 1->ALU
 PCMX  : PC muxer : 0->PC+1, 1->REGS1, 2->ALU
 RWDMX : Register data write muxer : 0->MEMDATA, 1->ALU, 2->PC
-RWSMX : Register selection write muxer : 0->RRDEST, 1->RIDEST, 2->0x1D (hardcoded RA register 29)
-AMX2  :	ALU muxer to select 2nd operand : 0->REGS2, 1->IMMLOW, 2->IMMHI
+RWSMX : Register selection write muxer : 0->RRDEST, 1->RIDEST, 2->0x1D (RA register 29)
+AMX2  :	ALU muxer to select 2nd operand : 0->REGS2, 1->IMMLOW, 2->IMMHI, 3->IMM26
 
 
 Control FSM input
@@ -106,12 +106,12 @@ FSM transition
 		else
 			NEXT = 0 (Fetch)
 
-2.(0,2,4,5) : Execute ALU
+2.(0,1,4,5) : Execute ALU
 ============================
 Actions
 -------
 
-	- Common ALU instruction (independent of IMM bit) :
+	- (2.0, 2.4) Common ALU instruction (independent of IMM bit) :
 		00000
 		00001
 		00010
@@ -132,7 +132,7 @@ Actions
 		-> AMX2 = not(IMM)
 
 
-	- ALU if IMM=1 (not immediate)
+	- (2.5) ALU if IMM=1 (not immediate)
 		00011
 		00111
 		10001
@@ -141,7 +141,7 @@ Actions
 		->AMX2 = 0
 
 
-	- ALU if IMM=0 (immediate) : only HI
+	- (2.1) ALU if IMM=0 (immediate), only HI
 		11000
 		11110
 		----------
@@ -159,7 +159,7 @@ Actions
 ROM content and adress:
 ----------------------
 	2.0 = 0x06000015 -> ROM=0x10
-	2.2 = 0x06000016 -> ROM=0x12
+	2.1 = 0x06000016 -> ROM=0x12
 	2.4 = 0x06000010 -> ROM=0x14
 	2.5 = 0x06000010 -> ROM=0x15
 
@@ -172,7 +172,7 @@ FSM transition
 ==========================
 Actions :
 ---------
-	- lw : 001010
+	- (3.0) lw : 001010
 		
 		AMX1 = 1
 		AMX2 = 1
@@ -183,7 +183,7 @@ Actions :
 		MLD = 1
 
 
-	- sw : 010110 
+	- (3.1) sw : 010110 
 		
 		AMX1 = 1
 		AMX2 = 1
@@ -218,9 +218,49 @@ FSM transition
 
 5.(0,1,2,3) : Branch
 =====================
-5.0 : branch  to imm16 (be, bg, bne, bge, ...)
-5.1 : branch to register
-5.2 : branch to imm26
-5.3 : calli (branch immediate + save PC)
+Actions
+-------
+	- (5.0) branch  to imm16 (be, bg, bne, bge, ...)
+		PCW  = 1	
+		AMX1 = 0
+		ALUMX= 1
+		PCMX = 2
+		AMX2 = 1
 
+	- (5.1) branch to register (b)
+		PCW  = 1
+		PCMX = 1
 
+	- (5.2) branch to register + save PC (call)
+		PCW = 1
+		RWE = 1
+		PCMX= 1
+		RWDMX=2
+		RWSMX=2
+
+	- (5.3) branch to imm26 (bi)
+		PCW  = 1
+		AMX1 = 0
+		ALUMX= 1
+		PCMX = 2
+		AMX2 = 3
+	- (5.4) branch immediate + save PC (calli)
+		PCW  = 1
+		RWE  = 1
+		AMX1 = 0
+		ALUMX= 1
+		PCMX = 2
+		RWDMX= 2
+		RWSMX= 2
+		AMX2 = 3
+ROM contents and address
+------------------------
+	5.0 : 0x80000481 -> ROM=0x28
+	5.1 : 0x80000040 -> ROM=0x29
+	5.2 : 0x84000068 -> ROM=0x2A
+	5.3 : 0x80000483 -> ROM=0x2B
+	5.4 : 0x840004AB -> ROM=0x2C
+
+FSM transition
+--------------
+	NEXT : 0 (Fetch)
