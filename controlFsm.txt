@@ -89,10 +89,11 @@ Actions
 -------
 	PCW=1
 	PCMX=0
+	AMX=1 (early evaluation of condition if instruction is branch)
 
 ROM content and address:
 -----------------------
-	0x80000000 -> ROM = 0x08
+	0x82000000 -> ROM = 0x08
 
 FSM transition
 --------------
@@ -132,7 +133,7 @@ Actions
 		-> AMX2 = not(IMM)
 
 
-	- (2.5) ALU if IMM=1 (not immediate)
+	- (2.6) ALU if IMM=1 (not immediate)
 		00011
 		00111
 		10001
@@ -161,7 +162,7 @@ ROM content and adress:
 	2.0 = 0x06000015 -> ROM=0x10
 	2.1 = 0x06000016 -> ROM=0x12
 	2.4 = 0x06000010 -> ROM=0x14
-	2.5 = 0x06000010 -> ROM=0x15
+	2.5 = 0x06000010 -> ROM=0x16
 
 FSM transition
 --------------
