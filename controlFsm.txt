@@ -5,8 +5,8 @@ Single bit :
 ----------
 
 
- 31 | 30 | 29 | 28 | 27 | 26 | 25 |
-PCW |IRW |RAD |MST |MLD |RWE |AMX1|
+ 31 | 30 | 29 | 28 | 27 | 26 | 25 | 24 |
+PCW |IRW |RAD |MST |MLD |RWE |AMX1|SEE |
 
 
 PCW : Write enable for PC
@@ -16,7 +16,7 @@ MST : memory store enable
 MLD : memory read enable (shall not be used with RAD)
 RWE : Register bank write enable
 AMX1: ALU muxer to select 1st operand : 0->PC, 1->REGS1
-
+SEE : Sign-extent enable for imm-16 value (IMMLOW) entering AMX2
 
 Dual bits :
 -----------
