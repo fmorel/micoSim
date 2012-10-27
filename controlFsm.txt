@@ -115,36 +115,48 @@ Actions
 	- (2.0, 2.4) Common ALU instruction (independent of IMM bit) :
 		00000
 		00001
-		00010
 		00101
 		00110
 		01000
 		01001
-		01101
 		01110
 		01111
-		11001
-		11010
-		11011
-		11100
-		11101
-		11111
-		-----------------
+
+	1	00011
+	1	00111
+	1	10001
+	1	10010
+
+	1	00010
+	1	01101
+	1	11001
+	1	11010
+	1	11011
+	1	11100
+	1	11101
+	1	11111
+
+		
+	-----------------
 		-> AMX2 = not(IMM)
+		
+	- (2.2) ALU instruction with sign_extend (only if IMM=0) :
+	0	00010
+	0	01101
+	0	11001
+	0	11010
+	0	11011
+	0	11100
+	0	11101
+	0	11111
+	-----------------
+		-> AMX2 = not(IMM)
+		-> SEE = 1
 
-
-	- (2.6) ALU if IMM=1 (not immediate)
-		00011
-		00111
-		10001
-		10010
-		----------
-		->AMX2 = 0
-
-
+	
 	- (2.1) ALU if IMM=0 (immediate), only HI
-		11000
-		11110
+	0	11000
+	0	11110
 		----------
 		->AMX2 = 2
 
@@ -160,9 +172,9 @@ Actions
 ROM content and adress:
 ----------------------
 	2.0 = 0x06000015 -> ROM=0x10
-	2.1 = 0x06000016 -> ROM=0x12
+	2.1 = 0x06000016 -> ROM=0x11
+	2.2 = 0x07000015 -> ROM=0x12
 	2.4 = 0x06000010 -> ROM=0x14
-	2.5 = 0x06000010 -> ROM=0x16
 
 FSM transition
 --------------
@@ -176,6 +188,7 @@ Actions :
 	- (3.0) lw : 001010
 		
 		AMX1 = 1
+		SEE  = 1
 		AMX2 = 1
 		ADMX = 1
 		RWDMX = 0
@@ -187,6 +200,7 @@ Actions :
 	- (3.1) sw : 010110 
 		
 		AMX1 = 1
+		SEE  = 1
 		AMX2 = 1
 		ADMX = 1
 		MST	 = 1
@@ -194,8 +208,8 @@ Actions :
 
 ROM content and address:
 -----------------------
-	3.0 = 0x0E000105 -> ROM=0x18
-	3.1 = 0x32000101 -> ROM=0x19
+	3.0 = 0x0F000105 -> ROM=0x18
+	3.1 = 0x33000101 -> ROM=0x19
 
 FSM transition
 --------------
@@ -223,6 +237,7 @@ Actions
 -------
 	- (5.0) branch  to imm16 (be, bg, bne, bge, ...)
 		PCW  = 1	
+		SEE  = 1
 		AMX1 = 0
 		ALUMX= 1
 		PCMX = 2
@@ -245,6 +260,7 @@ Actions
 		ALUMX= 1
 		PCMX = 2
 		AMX2 = 3
+
 	- (5.4) branch immediate + save PC (calli)
 		PCW  = 1
 		RWE  = 1
@@ -254,9 +270,10 @@ Actions
 		RWDMX= 2
 		RWSMX= 2
 		AMX2 = 3
+
 ROM contents and address
 ------------------------
-	5.0 : 0x80000481 -> ROM=0x28
+	5.0 : 0x81000481 -> ROM=0x28
 	5.1 : 0x80000040 -> ROM=0x29
 	5.2 : 0x84000068 -> ROM=0x2A
 	5.3 : 0x80000483 -> ROM=0x2B
