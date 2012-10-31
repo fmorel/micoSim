@@ -12,4 +12,4 @@ gawk 'BEGIN {prev=0}
 		 while (add > (prev + 4))
 			 printf("0\n");
 		 printf("%2s%2s%2s%2s\n", $2, $3, $4, $5)}' <tmp >>$DST
-rm tmp
+#rm tmp
