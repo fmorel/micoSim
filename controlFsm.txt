@@ -5,8 +5,8 @@ Single bit :
 ----------
 
 
- 31 | 30 | 29 | 28 | 27 | 26 | 25 | 24 |
-PCW |IRW |RAD |MST |MLD |RWE |AMX1|SEE |
+ 31 | 30 | 29 | 28 | 27 | 26 | 25 | 24 | 23 |
+PCW |IRW |RAD |MST |MLD |RWE |AMX1|SEE |A2S |
 
 
 PCW : Write enable for PC
@@ -17,13 +17,15 @@ MLD : memory read enable (shall not be used with RAD)
 RWE : Register bank write enable
 AMX1: ALU muxer to select 1st operand : 0->PC, 1->REGS1
 SEE : Sign-extent enable for imm-16 value (IMMLOW) entering AMX2
+A2S : Input left shift for ALU2 value : 0->0, 1->2
 
 Dual bits :
 -----------
 
-10-11 |9-8 | 7-6 | 5-4 | 3-2 | 1-0 |
-ALUMX |ADMX|PCMX |RWDMX|RWSMX|AMX2 |
+12-13 |10-11 |9-8 | 7-6 | 5-4 | 3-2 | 1-0 |
+MLEN  |ALUMX |ADMX|PCMX |RWDMX|RWSMX|AMX2 |
 
+MLEN  : Length of memory access : 0->word(4 bytes), 1->half world(2 bytes), 2->byte
 ALUMX : ALU operation muxer : 0->opcode (IR), 1->0xd (ADD)
 ADMX  : Address muxer : 0->PC, 1->ALU
 PCMX  : PC muxer : 0->PC+1, 1->REGS1, 2->ALU
@@ -241,6 +243,7 @@ Actions
 		AMX1 = 0
 		ALUMX= 1
 		PCMX = 2
+		A2S  = 1
 		AMX2 = 1
 
 	- (5.1) branch to register (b)
@@ -259,6 +262,7 @@ Actions
 		AMX1 = 0
 		ALUMX= 1
 		PCMX = 2
+		A2S  = 1
 		AMX2 = 3
 
 	- (5.4) branch immediate + save PC (calli)
@@ -269,15 +273,16 @@ Actions
 		PCMX = 2
 		RWDMX= 2
 		RWSMX= 2
+		A2S  = 1
 		AMX2 = 3
 
 ROM contents and address
 ------------------------
-	5.0 : 0x81000481 -> ROM=0x28
+	5.0 : 0x81800481 -> ROM=0x28
 	5.1 : 0x80000040 -> ROM=0x29
 	5.2 : 0x84000068 -> ROM=0x2A
-	5.3 : 0x80000483 -> ROM=0x2B
-	5.4 : 0x840004AB -> ROM=0x2C
+	5.3 : 0x80800483 -> ROM=0x2B
+	5.4 : 0x848004AB -> ROM=0x2C
 
 FSM transition
 --------------
