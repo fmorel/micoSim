@@ -2,7 +2,7 @@
 SRC=$1
 DST=${SRC/.elf/.ram}
 
-lm32-elf-objdump -D -j .text -j .data $SRC >| tmp
+lm32-elf-objdump -D -j .text -j .data  -j .rodata -j .bss $SRC >| tmp
 echo 'v2.0 raw' >| $DST
 gawk 'BEGIN {prev=0}
 	 $1 ~ /\<[0-9a-f]+:/ {

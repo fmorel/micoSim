@@ -195,6 +195,7 @@ Actions :
 		ADMX = 1
 		RWDMX = 0
 		RWSMX = 1
+		ALUMX = 1
 		RWE = 1
 		MLD = 1
 		MLEN=0,1,2
@@ -208,20 +209,21 @@ Actions :
 		ADMX = 1
 		MST	 = 1
 		RAD	 = 1
+		ALUMX = 1
 		MLEN = 0,1,2
 
 ROM content and address:
 -----------------------
-	3.0 = 0x0F000105 -> ROM=0x18
-	3.1 = 0x33000101 -> ROM=0x19
-	3.2 = 0x0F001105 -> ROM=0x1A
-	3.3 = 0x33001101 -> ROM=0x1B
-	3.4 = 0x0F002105 -> ROM=0x1C
-	3.5 = 0x33002101 -> ROM=0x1D
+	3.0 = 0x0F000505 -> ROM=0x18
+	3.1 = 0x33000501 -> ROM=0x19
+	3.2 = 0x0F001505 -> ROM=0x1A
+	3.3 = 0x33001501 -> ROM=0x1B
+	3.4 = 0x0F002505 -> ROM=0x1C
+	3.5 = 0x33002501 -> ROM=0x1D
 
 FSM transition
 --------------
-	NEXT : 4	(Execute memory 2)
+	NEXT : 0 (fetch)
 
 
 4.(0,1) : Execute memory 2
