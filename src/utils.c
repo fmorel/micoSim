@@ -31,15 +31,15 @@ int intToString(int a, unsigned int base, char *str)
 	
 	//Get digits in reverse order
 	while (abs > 0) {
-		buf[i]= digits[a%base];
-		a/=base;
+		buf[i]= digits[abs%base];
+		abs/=base;
 		i++;
 	}
 
 	//reverse string
 	n=i;
 	for(i=0;i<n; i++) {
-		str[i]=buf[n-i];
+		str[i]=buf[n-i-1];
 	}
 	//NULL character at the end
 	str[n]=0;
